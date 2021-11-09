@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
 
     public static final int REQUEST_CODE_ADD_NOTE = 1;
     public static final int REQUEST_CODE_UPDATE_NOTE = 2;
-    public static final int REQUEST_CODE_DELETE_NOTE = 3;
+    public static final int REQUEST_CODE_SHOW_NOTES = 3;
 
     private RecyclerView notesRecyclerView;
     private List<Note> noteList;
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
         notesAdapter = new NotesAdapter(noteList, this);
         notesRecyclerView.setAdapter(notesAdapter);
 
-        getNotes();
+        getNotes(REQUEST_CODE_SHOW_NOTES);
 
         EditText inputSearch = findViewById(R.id.inputSearch);
         inputSearch.addTextChangedListener(new TextWatcher() {
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
         startActivityForResult(i, REQUEST_CODE_UPDATE_NOTE);
     }
 
-    private void getNotes() {
+    private void getNotes(final int requestCode) {
 
         @SuppressLint("StaticFieldLeak")
         class GetNoteTask extends AsyncTask<Void, Void, List<Note>> {
@@ -101,14 +101,18 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
             protected void onPostExecute(List<Note> notes) {
                 super.onPostExecute(notes);
                 Log.d(TAG, "onPostExecute: " + notes.toString());
-                if (noteList.size() == 0) {
+                if (requestCode == REQUEST_CODE_SHOW_NOTES) {
                     noteList.addAll(notes);
                     notesAdapter.notifyDataSetChanged();
-                } else {
+                } else if (requestCode == REQUEST_CODE_ADD_NOTE) {
                     noteList.add(0, notes.get(0));
                     notesAdapter.notifyItemInserted(0);
+                    notesRecyclerView.smoothScrollToPosition(0);
+                } else if (requestCode == REQUEST_CODE_UPDATE_NOTE) {
+                    noteList.remove(noteClickedPosition);
+                    noteList.add(noteClickedPosition, notes.get(noteClickedPosition));
+                    notesAdapter.notifyItemChanged(noteClickedPosition);
                 }
-                notesRecyclerView.smoothScrollToPosition(0);
             }
         }
 
@@ -120,7 +124,11 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_ADD_NOTE && resultCode == RESULT_OK) {
-            getNotes();
+            getNotes(REQUEST_CODE_ADD_NOTE);
+        } else if (requestCode == REQUEST_CODE_UPDATE_NOTE && resultCode == RESULT_OK) {
+            if (data != null) {
+                getNotes(REQUEST_CODE_UPDATE_NOTE);
+            }
         }
     }
 }

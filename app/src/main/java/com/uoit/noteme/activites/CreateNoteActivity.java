@@ -12,7 +12,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -24,7 +23,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.uoit.noteme.R;
@@ -78,8 +76,8 @@ public class CreateNoteActivity extends AppCompatActivity {
         selectedNoteColor = "#333333";
         selectedImagePath = "";
 
-        if(getIntent().getBooleanExtra("isViewOrUpdate",false)){
-            alreadyAvail=(Note)getIntent().getSerializableExtra("note");
+        if (getIntent().getBooleanExtra("isViewOrUpdate", false)) {
+            alreadyAvail = (Note) getIntent().getSerializableExtra("note");
             setViewOrUpdateNote();
         }
 
@@ -87,17 +85,18 @@ public class CreateNoteActivity extends AppCompatActivity {
         setSubtitleIndicatorColor();
     }
 
-    private void setViewOrUpdateNote(){
+    private void setViewOrUpdateNote() {
         //
         inputNoteTitle.setText((alreadyAvail.getTitle()));
         inputNoteSubtitle.setText(alreadyAvail.getSubtitle());
         inputNoteText.setText(alreadyAvail.getNoteText());
         textDateTime.setText(alreadyAvail.getDateTime());
-        if(alreadyAvail.getImagePath()!=null && !alreadyAvail.getImagePath().trim().isEmpty()){
+        if (alreadyAvail.getImagePath() != null && !alreadyAvail.getImagePath().trim().isEmpty()) {
             imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvail.getImagePath()));
             imageNote.setVisibility(View.VISIBLE);
-            //selectedImagePath=alreadyAvail.getImagePath();
+            selectedImagePath = alreadyAvail.getImagePath();
         }
+
     }
 
     private void saveNote() {
@@ -119,6 +118,9 @@ public class CreateNoteActivity extends AppCompatActivity {
         note.setColor(selectedNoteColor);
         note.setImagePath(selectedImagePath);
 
+        if (alreadyAvail!= null){
+            note.setId(alreadyAvail.getId());
+        }
         @SuppressLint("StaticFieldLeak")
         class SaveNoteTask extends AsyncTask<Void, Void, Void> {
             @Override
@@ -206,6 +208,26 @@ public class CreateNoteActivity extends AppCompatActivity {
             setSubtitleIndicatorColor();
         });
 
+        if (alreadyAvail != null && alreadyAvail.getColor() != null && !alreadyAvail.getColor().trim().isEmpty()) {
+            switch (alreadyAvail.getColor()) {
+                case "333333":
+                    layoutMiscellaneous.findViewById(R.id.viewColor1).performClick();
+                    break;
+                case "FFFF00":
+                    layoutMiscellaneous.findViewById(R.id.viewColor2).performClick();
+                    break;
+                case "7B99F4":
+                    layoutMiscellaneous.findViewById(R.id.viewColor3).performClick();
+                    break;
+                case "98D319":
+                    layoutMiscellaneous.findViewById(R.id.viewColor4).performClick();
+                    break;
+                case "19CED3":
+                    layoutMiscellaneous.findViewById(R.id.viewColor5).performClick();
+                    break;
+
+            }
+        }
         layoutMiscellaneous.findViewById(R.id.layoutAddImage).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -228,14 +250,13 @@ public class CreateNoteActivity extends AppCompatActivity {
     }
 
 
-    private void selectImage(){
+    private void selectImage() {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, PICK_FROM_GALLERY);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PICK_FROM_GALLERY:
                 // If request is cancelled, the result arrays are empty.
@@ -273,13 +294,13 @@ public class CreateNoteActivity extends AppCompatActivity {
         }
     }
 
-    private String getPathFromUri(Uri contentUri){
+    private String getPathFromUri(Uri contentUri) {
         String filePath;
         Cursor cursor = getContentResolver()
                 .query(contentUri, null, null, null, null);
-        if (cursor == null){
+        if (cursor == null) {
             filePath = contentUri.getPath();
-        } else{
+        } else {
             cursor.moveToFirst();
             int index = cursor.getColumnIndex("_data");
             filePath = cursor.getString(index);
