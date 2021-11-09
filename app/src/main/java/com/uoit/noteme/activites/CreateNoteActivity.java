@@ -294,10 +294,19 @@ public class CreateNoteActivity extends AppCompatActivity {
                             finish();
                         }
                     }
+                    new DeleteNoteTask().execute();
                 }
 
             });
+            view.findViewById(R.id.cancelDeleteNote).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialogDeleteNote.dismiss();
+                }
+            });
         }
+        dialogDeleteNote.show();
+        
     }
 
 
