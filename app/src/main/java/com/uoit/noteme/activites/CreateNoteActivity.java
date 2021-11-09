@@ -46,6 +46,7 @@ public class CreateNoteActivity extends AppCompatActivity {
 
 
     private String selectedNoteColor;
+    private Note alreadyAvail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +73,26 @@ public class CreateNoteActivity extends AppCompatActivity {
 
         selectedNoteColor = "#333333";
 
+        if(getIntent().getBooleanExtra("isViewOrUpdate",false)){
+            alreadyAvail=(Note)getIntent().getSerializableExtra("note");
+            setViewOrUpdateNote();
+        }
+
         initMiscellaneous();
         setSubtitleIndicatorColor();
+    }
+
+    private void setViewOrUpdateNote(){
+        //
+        inputNoteTitle.setText((alreadyAvail.getTitle()));
+        inputNoteSubtitle.setText(alreadyAvail.getSubtitle());
+        inputNoteText.setText(alreadyAvail.getNoteText());
+        textDateTime.setText(alreadyAvail.getDateTime());
+        if(alreadyAvail.getImagePath()!=null && !alreadyAvail.getImagePath().trim().isEmpty()){
+            imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvail.getImagePath()));
+            imageNote.setVisibility(View.VISIBLE);
+            //selectedImagePath=alreadyAvail.getImagePath();
+        }
     }
 
     private void saveNote() {
@@ -194,9 +213,10 @@ public class CreateNoteActivity extends AppCompatActivity {
         });
     }
 
-    private void selectImage(){
+    private void selectImage() {
+
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        if (intent.resolveActivity(getPackageManager()) != null){
+        if (intent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(intent, REQUEST_CODE_SELECT_IMAGE);
         }
 
@@ -210,10 +230,10 @@ public class CreateNoteActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE_STORAGE_PERMISSION && grantResults.length > 0){
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if ((requestCode == REQUEST_CODE_STORAGE_PERMISSION) && (grantResults.length > 0)) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 selectImage();
-            } else{
+            } else {
                 Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
@@ -222,10 +242,10 @@ public class CreateNoteActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK){
-            if (data != null){
+        if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK) {
+            if (data != null) {
                 Uri selectedImageUri = data.getData();
-                if (selectedImageUri != null){
+                if (selectedImageUri != null) {
                     try {
                         InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
